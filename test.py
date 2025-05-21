@@ -1,6 +1,5 @@
 import gymnasium as gym
 from sustaingym.envs.evcharging import GMMsTraceGenerator
-from sustaingym.envs.evcharging import DiscreteActionWrapper
 from gymnasium.wrappers import FlattenObservation
 from tqdm import tqdm
 import numpy as np
@@ -16,7 +15,7 @@ print(env.spec.max_episode_steps)
 ls = []
 money = []
 
-for _ in tqdm(range(15)):
+for _ in tqdm(range(100)):
     total_return = 0
     obs, _ = env.reset()
     done = False
@@ -27,11 +26,8 @@ for _ in tqdm(range(15)):
         done = terminated or truncated
         steps += 1
         total_return += reward
-    print(steps)
     ls.append(total_return)
     money.append(info['reward_breakdown']['profit'])
-    #    print(reward)
-    #    print(f"Profit: {info['reward_breakdown']['profit']}, Carbon: {info['reward_breakdown']['carbon_cost']}, Excess: {info['reward_breakdown']['excess_charge']}")
 
 print(np.mean(ls), np.std(ls))
 print(np.mean(money), np.std(money))

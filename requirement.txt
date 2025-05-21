@@ -20,5 +20,19 @@ pettingzoo>=1.24.0,<1.25.0
 ray[rllib]==2.8.*
 stable_baselines3>=2.0.0
 
+# For additional algorithms and configuration
+sb3_contrib>=2.0.0
+hydra-core>=1.3.0
+omegaconf>=2.2.0
+
+# PyTorch (uncomment appropriate version)
+# For CUDA:
+# torch>=2.0.0,<2.1.0
+# For CPU only:
+# torch>=2.0.0,<2.1.0+cpu
+
+# For YAML configuration
+pyyaml>=6.0
+
 # Uncomment below and comment out torch-cuda and tensorflow[and-cuda] above for CPU-only
 # tensorflow==2.14.*
