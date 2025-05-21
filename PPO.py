@@ -9,47 +9,40 @@ from stable_baselines3.common.vec_env import DummyVecEnv, VecMonitor
 from stable_baselines3.common.callbacks import CheckpointCallback, EvalCallback
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.evaluation import evaluate_policy
+from gymnasium.wrappers import FlattenObservation
 
-from env import DictToArrayWrapper
-
-# 創建環境
 def make_env(seed=0):
     def _init():
-        gmmg = GMMsTraceGenerator('caltech', 'Summer 2021')  # 使用2021訓練
-        env = gym.make('sustaingym/EVCharging-v0', data_generator=gmmg)
-        env = DictToArrayWrapper(env)
-        env = Monitor(env)  # 用於記錄訓練統計數據
-        return env
-    return _init
-
-# 創建評估環境
-def make_eval_env(seed=1):
-    def _init():
-        gmmg = GMMsTraceGenerator('caltech', 'Summer 2021')  # 使用2021評估
-        env = gym.make('sustaingym/EVCharging-v0', data_generator=gmmg)
-        env = DictToArrayWrapper(env)
+        gmmg = GMMsTraceGenerator('caltech', 'Summer 2021')
+        env = gym.make('sustaingym/EVCharging-v0', data_generator=gmmg, project_action_in_env=False)
+        env = FlattenObservation(env)
         env = Monitor(env)
         return env
     return _init
 
-# 創建向量化環境
-env = DummyVecEnv([make_env(seed=i) for i in range(16)])  # 16個並行環境
+def make_eval_env(seed=1):
+    def _init():
+        gmmg = GMMsTraceGenerator('caltech', 'Summer 2021')
+        env = gym.make('sustaingym/EVCharging-v0', data_generator=gmmg, project_action_in_env=False)
+        env = FlattenObservation(env)
+        env = Monitor(env)
+        return env
+    return _init
+
+env = DummyVecEnv([make_env(seed=i) for i in range(16)])
 env = VecMonitor(env, "logs/evcharging_ppo_train")
 
-print(env.action_space)
 print(env.observation_space)
+print(env.action_space)
 
-# 創建評估環境
-eval_env = DummyVecEnv([make_eval_env(seed=i) for i in range(2)])  # 2個評估環境
+eval_env = DummyVecEnv([make_eval_env(seed=i) for i in range(2)])
 eval_env = VecMonitor(eval_env, "logs/evcharging_ppo_eval")
 
-# 設置模型保存目錄
 log_dir = "logs/"
 os.makedirs(log_dir, exist_ok=True)
 
-# 創建回調函數
 checkpoint_callback = CheckpointCallback(
-    save_freq=10000,  # 每10000步保存一次
+    save_freq=1000,
     save_path=f"{log_dir}/models/",
     name_prefix="ppo_evcharging",
     save_replay_buffer=True,
@@ -66,9 +59,8 @@ eval_callback = EvalCallback(
     render=False,
 )
 
-# 創建並訓練 PPO 模型
 model = PPO(
-    "MlpPolicy",  # 使用 LSTM 策略
+    "MlpPolicy",
     env,
     learning_rate=5e-4,  # 設置學習率
     n_steps=2048,        # 每次更新前收集的步數
@@ -84,18 +76,15 @@ model = PPO(
     tensorboard_log=f"{log_dir}/tensorboard/",
 )
 
-# 訓練模型
 print("開始訓練...")
 model.learn(
-    total_timesteps=10000000,  # 總訓練步數
+    total_timesteps=10000000,
     callback=[checkpoint_callback, eval_callback],
 )
 
-# 保存最終模型
 model.save(f"{log_dir}/final_model/ppo_evcharging_final")
 print("訓練完成並保存模型")
 
-# 評估訓練好的模型
 print("評估模型...")
-mean_reward, std_reward = evaluate_policy(model, eval_env, n_eval_episodes=10, deterministic=True)
+mean_reward, std_reward = evaluate_policy(model, eval_env, n_eval_episodes=100, deterministic=True)
 print(f"平均獎勵: {mean_reward:.2f} +/- {std_reward:.2f}")
