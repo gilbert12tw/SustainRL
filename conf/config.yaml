@@ -1,4 +1,8 @@
 # Default configuration
+hydra:
+  output_subdir: null  # Don't create .hydra subdirectory with configs
+  run:
+    dir: .  # Run in current directory
 
 # Algorithm to use
 algo: PPO
