@@ -108,15 +108,10 @@ CrossQ:
 # ARS algorithm parameters
 ARS:
   n_delta: 8
-  step_size: 0.02
   delta_std: 0.05
-  rollout_steps: 1000
   n_top: 4
   learning_rate: 0.01
-  delta_max: null
   zero_policy: false
-  eval_episodes: 1
-  scale_reward: true
 
 # TQC algorithm parameters
 TQC:
@@ -131,7 +126,5 @@ TQC:
   action_noise: null
   policy_kwargs: null
   top_quantiles_to_drop_per_net: 2
-  n_critics: 5
-  n_quantiles: 25
   ent_coef: "auto"
   target_entropy: "auto" 
